@@ -32,13 +32,21 @@
 `define EXE_XORI  6'b001110    // xori 指令的指令码
 `define EXE_LUI   6'b001111    // lui 指令的指令码
 
-// 移位类指令的功能码【R型指令的功能码0~5】
+// 移位操作指令的功能码【R型指令的功能码0~5】
 `define EXE_SLL   6'b000000    // sll 指令的功能码
 `define EXE_SLLV  6'b000100    // sllv 指令的功能码
 `define EXE_SRL   6'b000010    // sra 指令的功能码
 `define EXE_SRLV  6'b000110    // srlv 指令的功能码
 `define EXE_SRA   6'b000011    // sra 指令的功能码
 `define EXE_SRAV  6'b000111    // srav 指令的功能码
+
+//移动类指令的功能码【R型指令的功能码0~5】
+`define EXE_MOVZ  6'b001010    // movz 指令的功能码
+`define EXE_MOVN  6'b001011    // movn 指令的功能码
+`define EXE_MFHI  6'b010000    // mfhi 指令的功能码
+`define EXE_MTHI  6'b010001    // mthi 指令的功能码
+`define EXE_MFLO  6'b010010    // mflo 指令的功能码
+`define EXE_MTLO  6'b010011    // mtlo 指令的功能码
 
 // 特殊控制指令【R型指令的功能码0~5】
 `define EXE_SYNC  6'b011111    // sync 指令的功能码
@@ -61,10 +69,19 @@
 `define EXE_SRL_OP  	8'b00000010
 `define EXE_SRA_OP		8'b00000011
 
+//移位操作指令类型码
+`define EXE_MOVZ_OP  8'b00001010
+`define EXE_MOVN_OP  8'b00001011
+`define EXE_MFHI_OP  8'b00010000
+`define EXE_MTHI_OP  8'b00010001
+`define EXE_MFLO_OP  8'b00010010
+`define EXE_MTLO_OP  8'b00010011
+
 /******************* ALU选择相关【自行拟定所得】 ****************************/
 `define EXE_RES_LOGIC      3'b001   // 执行逻辑运算时的 ALU 选择
 `define EXE_RES_NOP        3'b000   // NOP 操作时的 ALU 选择
 `define EXE_RES_SHIFT 	3'b010			// 移位运算
+`define EXE_RES_MOVE 3'b011	
 
 //**************与指令存储器 ROM 有关的宏定义 ******************/
 `define InstAddrBus        31:0     // ROM 的地址总线宽度

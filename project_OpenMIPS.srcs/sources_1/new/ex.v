@@ -7,26 +7,47 @@ module ex (
     input  wire           rst,
 
     // 译码阶段送到执行阶段的信息
-    input  wire [`AluOpBus]   aluop_i,      // ALU 操作码（具体运算类型）
-    input  wire [`AluSelBus]  alusel_i,     // ALU 结果选择（逻辑 or 移位）
-    input  wire [`RegBus]     reg1_i,       // 第一个操作数（如 rs 或 shamt）
-    input  wire [`RegBus]     reg2_i,       // 第二个操作数（如 rt 或立即数）
-    input  wire [`RegAddrBus] wd_i,         // 要写回的目的寄存器地址
-    input  wire               wreg_i,       // 写使能信号（是否需要写回）
+    input  wire [`AluOpBus]   aluop_i,      // ALU 子操作类型（如 OR、SLL、MFHI 等）
+    input  wire [`AluSelBus]  alusel_i,     // ALU 主类型选择（逻辑 / 移位 / 移动）
+    input  wire [`RegBus]     reg1_i,       // 源操作数1（可能为 rs、shamt 或立即数）
+    input  wire [`RegBus]     reg2_i,       // 源操作数2（通常为 rt 或立即数）
+    input  wire [`RegAddrBus] wd_i,         // 目标寄存器地址（rd 或 rt）
+    input  wire               wreg_i,       // 是否需要写回通用寄存器
 
-    // 执行阶段输出
-    output reg [`RegAddrBus]  wd_o,         // 目的寄存器地址（直通）
+    // 当前 HI/LO 寄存器值（来自 HILO_REG）
+    input  wire [`RegBus]     hi_i,
+    input  wire [`RegBus]     lo_i,
+
+    // 回写阶段（WB）对 HI/LO 的写回信息（用于前递）
+    input  wire [`RegBus]     wb_hi_i,
+    input  wire [`RegBus]     wb_lo_i,
+    input  wire               wb_whilo_i,   // WB 阶段是否写 HI/LO
+
+    // 访存阶段（MEM）对 HI/LO 的写回信息（用于前递，优先级高于 WB）
+    input  wire [`RegBus]     mem_hi_i,
+    input  wire [`RegBus]     mem_lo_i,
+    input  wire               mem_whilo_i,  // MEM 阶段是否写 HI/LO
+
+    // 执行阶段输出（送至 MEM/WB 阶段）
+    output reg  [`RegAddrBus] wd_o,         // 目标寄存器地址（直通）
     output reg                wreg_o,       // 写使能（直通）
-    output reg [`RegBus]      wdata_o       // ALU 运算结果
+    output reg  [`RegBus]     wdata_o,      // ALU 运算结果
+
+    // HI/LO 写回输出（用于更新 HILO_REG）
+    output reg  [`RegBus]     hi_o,
+    output reg  [`RegBus]     lo_o,
+    output reg                whilo_o       // 是否在本周期写 HI/LO
 );
 
-// 保存逻辑运算的结果（OR/AND/NOR/XOR）
-reg [`RegBus] logicout;
-// 保存移位运算的结果（SLL/SRL/SRA）
-reg [`RegBus] shiftres;
+// 各功能单元的中间结果
+reg [`RegBus] logicout;     // 逻辑运算结果（OR/AND/XOR/NOR）
+reg [`RegBus] shiftres;     // 移位运算结果（SLL/SRL/SRA）
+reg [`RegBus] moveres;      // 移动类指令结果（MFHI/MFLO/MOVZ/MOVN）
+reg [`RegBus] HI;           // 当前有效的 HI 值（考虑前递）
+reg [`RegBus] LO;           // 当前有效的 LO 值（考虑前递）
 
 // ----------------------------
-// 逻辑运算单元
+// 逻辑运算单元：处理 AND/OR/XOR/NOR
 // ----------------------------
 always @ (*) begin
     if (rst == `RstEnable) begin
@@ -53,8 +74,8 @@ always @ (*) begin
 end
 
 // ----------------------------
-// 移位运算单元
-// 注意：移位量取自 reg1_i[4:0]（MIPS 指令中 shamt 字段为5位）
+// 移位运算单元：SLL/SRL/SRA
+// 注意：移位量取自 reg1_i[4:0]（5 位 shamt）
 // ----------------------------
 always @ (*) begin
     if (rst == `RstEnable) begin
@@ -79,23 +100,94 @@ always @ (*) begin
 end
 
 // ----------------------------
-// 根据 alusel_i 选择最终结果，并传递控制信号
+// 获取当前有效的 HI/LO 值（解决数据相关）
+// 优先级：MEM 阶段写 > WB 阶段写 > 当前 HI/LO 寄存器值
 // ----------------------------
 always @ (*) begin
-    wd_o   <= wd_i;     // 直通目的寄存器地址
-    wreg_o <= wreg_i;   // 直通写使能
+    if (rst == `RstEnable) begin
+        {HI, LO} <= {`ZeroWord, `ZeroWord};
+    end else if (mem_whilo_i == `WriteEnable) begin
+        {HI, LO} <= {mem_hi_i, mem_lo_i};
+    end else if (wb_whilo_i == `WriteEnable) begin
+        {HI, LO} <= {wb_hi_i, wb_lo_i};
+    end else begin
+        {HI, LO} <= {hi_i, lo_i};
+    end
+end
 
+// ----------------------------
+// 移动类指令处理：MFHI / MFLO / MOVZ / MOVN
+// 注意：MOVZ/MOVN 的实际条件判断在 ID 或 EX 控制逻辑中完成，
+//       此处仅传递 reg1_i 作为候选结果（由上游控制 wreg_o）
+// ----------------------------
+always @ (*) begin
+    if (rst == `RstEnable) begin
+        moveres <= `ZeroWord;
+    end else begin
+        moveres <= `ZeroWord;
+        case (aluop_i)
+            `EXE_MFHI_OP: begin
+                moveres <= HI;
+            end
+            `EXE_MFLO_OP: begin
+                moveres <= LO;
+            end
+            `EXE_MOVZ_OP: begin
+                moveres <= reg1_i;
+            end
+            `EXE_MOVN_OP: begin
+                moveres <= reg1_i;
+            end
+            default: begin
+                // 保持默认值
+            end
+        endcase
+    end
+end
+
+// ----------------------------
+// 根据 alusel_i 选择最终 ALU 输出，并直通控制信号
+// ----------------------------
+always @ (*) begin
+    wd_o   <= wd_i;
+    wreg_o <= wreg_i;
     case (alusel_i)
         `EXE_RES_LOGIC: begin
-            wdata_o <= logicout;  // 选择逻辑运算结果
+            wdata_o <= logicout;
         end
         `EXE_RES_SHIFT: begin
-            wdata_o <= shiftres;  // 选择移位运算结果
+            wdata_o <= shiftres;
+        end
+        `EXE_RES_MOVE: begin
+            wdata_o <= moveres;
         end
         default: begin
-            wdata_o <= `ZeroWord; // 默认输出0（安全状态）
+            wdata_o <= `ZeroWord;
         end
     endcase
+end
+
+// ----------------------------
+// 处理 MTHI / MTLO 指令：生成 HI/LO 写回信号和数据
+// ----------------------------
+always @ (*) begin
+    if (rst == `RstEnable) begin
+        whilo_o <= `WriteDisable;
+        hi_o    <= `ZeroWord;
+        lo_o    <= `ZeroWord;
+    end else if (aluop_i == `EXE_MTHI_OP) begin
+        whilo_o <= `WriteEnable;
+        hi_o    <= reg1_i;    // 将 reg1_i 写入 HI
+        lo_o    <= LO;        // LO 保持不变
+    end else if (aluop_i == `EXE_MTLO_OP) begin
+        whilo_o <= `WriteEnable;
+        hi_o    <= HI;        // HI 保持不变
+        lo_o    <= reg1_i;    // 将 reg1_i 写入 LO
+    end else begin
+        whilo_o <= `WriteDisable;
+        hi_o    <= `ZeroWord;
+        lo_o    <= `ZeroWord;
+    end
 end
 
 endmodule
