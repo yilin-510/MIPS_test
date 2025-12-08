@@ -102,7 +102,17 @@ id id0(
     .reg1_o(id_reg1_o),
     .reg2_o(id_reg2_o),
     .wd_o(id_wd_o),
-    .wreg_o(id_wreg_o)
+    .wreg_o(id_wreg_o),
+      
+    //于在 ID 阶段检测是否需要将 EX 阶段刚计算出的结果直接作为操作数
+    .ex_wd_i(ex_wd_o),
+    .ex_wreg_i(ex_wreg_o),
+    .ex_wdata_i(ex_wdata_o),
+    
+    //用于处理 load 指令等 MEM 阶段才产生结果的情况
+    .mem_wd_i(mem_wd_o),
+    .mem_wreg_i(mem_wreg_o),
+    .mem_wdata_i(mem_wdata_o)
 );
 
 // 通用寄存器 regfile 模块例化

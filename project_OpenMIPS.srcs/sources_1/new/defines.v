@@ -19,16 +19,52 @@
 `define ChipDisable        1'b0    // 芯片禁止
 
 /***************** 与具体指令有关的宏定义 ***************/
-`define EXE_ORI            6'b001101  // 指令 ori 的指令码
-`define EXE_NOP            6'b000000  // 指令 nop 的指令码
 
-/***************** 与ALU计算相关的控制码 ******************/
-`define EXE_OR_OP          8'b0010101  // OR 操作的控制码
-`define EXE_NOP_OP         8'b0000000  // NOP 操作的控制码
+// 逻辑运算类指令的功能码（Function Code）【R型指令的功能码0~5】
+`define EXE_AND   6'b100100    // and 指令的功能码
+`define EXE_OR    6'b100101    // or 指令的功能码
+`define EXE_XOR   6'b100110    // xor 指令的功能码
+`define EXE_NOR   6'b100111    // nor 指令的功能码
 
-/******************* ALU选择相关 ****************************/
+// 立即数逻辑运算类指令的指令码（Opcode）【I型指令的指令码26~31】
+`define EXE_ANDI  6'b001100    // andi 指令的指令码
+`define EXE_ORI   6'b001101    // ori 指令的指令码
+`define EXE_XORI  6'b001110    // xori 指令的指令码
+`define EXE_LUI   6'b001111    // lui 指令的指令码
+
+// 移位类指令的功能码【R型指令的功能码0~5】
+`define EXE_SLL   6'b000000    // sll 指令的功能码
+`define EXE_SLLV  6'b000100    // sllv 指令的功能码
+`define EXE_SRL   6'b000010    // sra 指令的功能码
+`define EXE_SRLV  6'b000110    // srlv 指令的功能码
+`define EXE_SRA   6'b000011    // sra 指令的功能码
+`define EXE_SRAV  6'b000111    // srav 指令的功能码
+
+// 特殊控制指令【R型指令的功能码0~5】
+`define EXE_SYNC  6'b011111    // sync 指令的功能码
+`define EXE_PREF  6'b100011    // pref 指令的功能码
+
+// SPECIAL 类指令的指令码【R型指令的指令码26~31】
+`define EXE_SPECIAL_INST 6'b000000  // SPECIAL 类指令的指令码
+
+/***************** 与ALU计算相关的控制码【自行拟定所得】 ******************/
+//AluOp（运算子类型）
+`define EXE_NOP_OP		8'b00000000
+`define EXE_AND_OP   	8'b00100100
+`define EXE_OR_OP    	8'b00100101
+`define EXE_XOR_OP  	8'b00100110
+`define EXE_NOR_OP  	8'b00100111
+`define EXE_LUI_OP  	8'b01011100 
+
+// 移位运算子类型码，6种移位指令共用
+`define EXE_SLL_OP  	8'b01111100 
+`define EXE_SRL_OP  	8'b00000010
+`define EXE_SRA_OP		8'b00000011
+
+/******************* ALU选择相关【自行拟定所得】 ****************************/
 `define EXE_RES_LOGIC      3'b001   // 执行逻辑运算时的 ALU 选择
 `define EXE_RES_NOP        3'b000   // NOP 操作时的 ALU 选择
+`define EXE_RES_SHIFT 	3'b010			// 移位运算
 
 //**************与指令存储器 ROM 有关的宏定义 ******************/
 `define InstAddrBus        31:0     // ROM 的地址总线宽度
