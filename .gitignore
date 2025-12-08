@@ -1,0 +1,16 @@
+# Vivado auto-generated dirs
+project_*.cache/
+project_*.hw/
+project_*.ip_user_files/
+project_*.runs/
+
+# Log and temp files
+*.jou
+*.log
+*.str
+*.wdb
+*.pb
+*.wdf
+xsim.dir/
+webtalk_*.xml
+.vivado.*
