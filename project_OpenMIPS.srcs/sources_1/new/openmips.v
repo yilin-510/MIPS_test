@@ -51,7 +51,8 @@ module openmips(
 	output wire[3:0]               ram_sel_o,
 	output wire[3:0]               ram_ce_o,
 	
-	output wire                    timer_int_o
+	output wire                    timer_int_o,
+	output wire[`RegBus]            s0_data_o
 	
 );
 
@@ -297,7 +298,8 @@ module openmips(
 		.rdata1 (reg1_data),
 		.re2 (reg2_read),
 		.raddr2 (reg2_addr),
-		.rdata2 (reg2_data)
+		.rdata2 (reg2_data),
+		.s0_data_o(s0_data_o)
 	);
 
 	//ID/EXÄ£¿é
@@ -667,5 +669,6 @@ module openmips(
 		
 		.timer_int_o(timer_int_o)  			
 	);
+
 	
 endmodule

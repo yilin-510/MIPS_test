@@ -1,50 +1,17 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2014 leishangwen@163.com                       ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Module:  openmips_min_sopc
-// File:    openmips_min_sopc.v
-// Author:  Lei Silei
-// E-mail:  leishangwen@163.com
-// Description: 基于OpenMIPS处理器的一个简单SOPC，用于验证具备了
-//              wishbone总线接口的openmips，该SOPC包含openmips、
-//              wb_conmax、GPIO controller、flash controller，uart 
-//              controller，以及用来仿真flash的模块flashmem，在其中
-//              存储指令，用来仿真外部ram的模块datamem，在其中存储
-//              数据，并且具有wishbone总线接口    
-// Revision: 1.0
-//////////////////////////////////////////////////////////////////////
-
+// Final Top Module for EG01 Board: Displaying Fibonacci Result from $s0
 `include "defines.v"
 
 module openmips_min_sopc(
-
 	input	wire										clk,
-	input wire										rst
+	input wire										rst,
 	
+	// 数码管接口
+	output wire [7:0]               seg_o,
+	output wire [3:0]               dig_en_o,
+	// LED 接口
+	output wire [15:0]              led_o
 );
 
-  //连接指令存储器
   wire[`InstAddrBus] inst_addr;
   wire[`InstBus] inst;
   wire rom_ce;
@@ -56,29 +23,25 @@ module openmips_min_sopc(
   wire mem_ce_i;   
   wire[5:0] int;
   wire timer_int;
- 
-  //assign int = {5'b00000, timer_int, gpio_int, uart_int};
+  wire[`RegBus] s0_data; // 用于接收 $s0 的值
+
   assign int = {5'b00000, timer_int};
 
- openmips openmips0(
+  openmips openmips0(
 		.clk(clk),
 		.rst(rst),
-	
 		.rom_addr_o(inst_addr),
 		.rom_data_i(inst),
 		.rom_ce_o(rom_ce),
-
-    .int_i(int),
-
+        .int_i(int),
 		.ram_we_o(mem_we_i),
 		.ram_addr_o(mem_addr_i),
 		.ram_sel_o(mem_sel_i),
 		.ram_data_o(mem_data_i),
 		.ram_data_i(mem_data_o),
 		.ram_ce_o(mem_ce_i),
-		
-		.timer_int_o(timer_int)			
-	
+		.timer_int_o(timer_int),
+        .s0_data_o(s0_data) // 连接 $s0 数据
 	);
 	
 	inst_rom inst_rom0(
@@ -96,5 +59,17 @@ module openmips_min_sopc(
 		.data_i(mem_data_i),
 		.data_o(mem_data_o)	
 	);
+
+	// 实例化数码管驱动：现在显示的是 $s0 的值（斐波那契计算结果）
+	seg_driver seg_driver0(
+		.clk(clk),
+		.rst(rst),
+		.data_in(s0_data),
+		.seg_o(seg_o),
+		.dig_en_o(dig_en_o)
+	);
+
+	// LED 显示 PC 地址，作为运行状态参考
+	assign led_o = inst_addr[15:0];
 
 endmodule
