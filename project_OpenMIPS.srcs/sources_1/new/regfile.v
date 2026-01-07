@@ -29,6 +29,12 @@ module regfile(
 );
 
 	reg[`RegBus]  regs[0:`RegNum-1];
+	integer i;
+    initial begin
+        for (i = 0; i < `RegNum; i = i + 1) begin
+            regs[i] = `ZeroWord;
+        end
+    end
 
 	always @ (posedge clk) begin
 		if (rst == `RstDisable) begin

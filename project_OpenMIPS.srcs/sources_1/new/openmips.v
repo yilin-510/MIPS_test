@@ -153,30 +153,37 @@ module openmips(
   wire[`RegBus] cp0_data_o;
   wire[4:0] cp0_raddr_i;
   
+  wire                     flush;
+  wire [`RegBus]           new_pc;
+  wire[31:0]               excepttype;
+  wire[`RegBus]            cp0_epc;
+  
   //pc_reg例化
-	pc_reg pc_reg0(
-		.clk(clk),
-		.rst(rst),
-		.stall(stall),
-		.branch_flag_i(id_branch_flag_o),
-		.branch_target_address_i(branch_target_address),		
-		.pc(pc),
-		.ce(rom_ce_o)	
-			
-	);
+pc_reg pc_reg0(
+    .clk(clk),
+    .rst(rst),
+    .stall(stall),
+    .flush(flush),             // 连接 flush 输入
+    .new_pc(new_pc),           // 连接 new_pc 输入
+    .branch_flag_i(id_branch_flag_o),
+    .branch_target_address_i(branch_target_address),
+    .pc(pc),
+    .ce(rom_ce_o)
+);
 	
   assign rom_addr_o = pc;
 
   //IF/ID模块例化
-	if_id if_id0(
-		.clk(clk),
-		.rst(rst),
-		.stall(stall),
-		.if_pc(pc),
-		.if_inst(rom_data_i),
-		.id_pc(id_pc_i),
-		.id_inst(id_inst_i)      	
-	);
+if_id if_id0(
+    .clk(clk),
+    .rst(rst),
+    .stall(stall),
+    .flush(flush),             // 连接 flush 输入
+    .if_pc(pc),
+    .if_inst(rom_data_i),
+    .id_pc(id_pc_i),
+    .id_inst(id_inst_i)
+);
 	
 	//译码阶段ID模块
 	id id0(
@@ -500,16 +507,16 @@ module openmips(
 		.lo_o(lo)	
 	);
 	
-	ctrl ctrl0(
-		.rst(rst),
-	
-		.stallreq_from_id(stallreq_from_id),
-	
-  	//来自执行阶段的暂停请求
-		.stallreq_from_ex(stallreq_from_ex),
-
-		.stall(stall)       	
-	);
+ctrl ctrl0(
+    .rst(rst),
+    .excepttype_i(excepttype), // 连接 excepttype_i
+    .cp0_epc_i(cp0_epc),       // 连接 cp0_epc_i
+    .stallreq_from_id(stallreq_from_id),
+    .stallreq_from_ex(stallreq_from_ex),
+    .new_pc(new_pc),           // 连接 new_pc 输出
+    .flush(flush),             // 连接 flush 输出
+    .stall(stall)
+);
 
 	div div0(
 		.clk(clk),

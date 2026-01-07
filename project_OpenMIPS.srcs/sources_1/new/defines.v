@@ -1,6 +1,6 @@
 //全局
-`define RstEnable 1'b1
-`define RstDisable 1'b0
+`define RstEnable 1'b0
+`define RstDisable 1'b1
 `define ZeroWord 32'h00000000
 `define WriteEnable 1'b1
 `define WriteDisable 1'b0
@@ -244,13 +244,13 @@
 `define InstAddrBus 31:0
 `define InstBus 31:0
 `define InstMemNum 2048
-`define InstMemNumLog2 17
+`define InstMemNumLog2 11
 
 //数据存储器data_ram
 `define DataAddrBus 31:0
 `define DataBus 31:0
 `define DataMemNum 2048
-`define DataMemNumLog2 17
+`define DataMemNumLog2 11
 `define ByteWidth 7:0
 
 //通用寄存器regfile

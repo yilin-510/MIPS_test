@@ -1,46 +1,61 @@
-// Module: seg_driver
-// Description: 适配 EG1 开发板的 8 位共阴极数码管驱动
-// 硬件特性：位选高电平有效，段选高电平点亮
-
 module seg_driver(
-    input wire clk,           // 100MHz
-    input wire rst,           // 高电平复位
-    input wire [31:0] data_in, // CPU 传入的 32 位数据
-    output reg [7:0] seg_o,    // 段选
-    output reg [7:0] dig_en_o  // 位选 (8 位)
+    input wire clk,           // 100MHz 主时钟
+    input wire rst,           // 低电平有效复位（针对你说的始终为1的情况）
+    input wire [31:0] data_in, 
+    output reg [7:0] seg_o,   
+    output reg [7:0] dig_en_o  
 );
 
-    // 分频产生扫描时钟 (约 1kHz)
-    reg [17:0] cnt;
-    always @(posedge clk or posedge rst) begin
-        if (rst) cnt <= 0;
-        else cnt <= cnt + 1;
+    // 1. 分频计数器
+    reg [20:0] cnt;
+    always @(posedge clk or negedge rst) begin // 改为下降沿异步复位
+        if (!rst) begin                       // 低电平复位
+            cnt <= 21'd0;
+        end else begin
+            cnt <= cnt + 1'b1;
+        end
     end
-    wire scan_clk = cnt[17];
 
-    // 扫描计数器 (0-7)
+    // 2. 边缘检测产生使能信号
+    reg cnt_v_r; 
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            cnt_v_r <= 1'b0;
+        end else begin
+            cnt_v_r <= cnt[20];
+        end
+    end
+    
+    // 只有在 cnt[20] 上升沿时产生一个周期的脉冲
+    wire scan_en = (cnt[20] == 1'b1 && cnt_v_r == 1'b0);
+
+    // 3. 扫描计数器 (0-7)
     reg [2:0] scan_cnt;
-    always @(posedge scan_clk or posedge rst) begin
-        if (rst) scan_cnt <= 0;
-        else scan_cnt <= scan_cnt + 1;
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            scan_cnt <= 3'd0;
+        end else if (scan_en) begin
+            scan_cnt <= scan_cnt + 1'b1;
+        end
     end
 
-    // 获取当前位要显示的 4 位 16 进制数
+    // 4. 位选和数值选择 (组合逻辑)
     reg [3:0] hex_val;
-always @(*) begin
-    case(scan_cnt)
-        3'b000: begin dig_en_o = ~8'h01; hex_val = data_in[3:0];   end // 最右位
-        3'b001: begin dig_en_o = ~8'h02; hex_val = data_in[7:4];   end
-        3'b010: begin dig_en_o = ~8'h04; hex_val = data_in[11:8];  end
-        3'b011: begin dig_en_o = ~8'h08; hex_val = data_in[15:12]; end
-        3'b100: begin dig_en_o = ~8'h10; hex_val = data_in[19:16]; end
-        3'b101: begin dig_en_o = ~8'h20; hex_val = data_in[23:20]; end
-        3'b110: begin dig_en_o = ~8'h40; hex_val = data_in[27:24]; end
-        3'b111: begin dig_en_o = ~8'h80; hex_val = data_in[31:28]; end // 最左位
-    endcase
-end
+    always @(*) begin
+        case(scan_cnt)
+            3'b000: begin dig_en_o = 8'h01; hex_val = data_in[3:0];   end
+            3'b001: begin dig_en_o = 8'h02; hex_val = data_in[7:4];   end
+            3'b010: begin dig_en_o = 8'h04; hex_val = data_in[11:8];  end
+            3'b011: begin dig_en_o = 8'h08; hex_val = data_in[15:12]; end
+            3'b100: begin dig_en_o = 8'h10; hex_val = data_in[19:16]; end
+            3'b101: begin dig_en_o = 8'h20; hex_val = data_in[23:20]; end
+            3'b110: begin dig_en_o = 8'h40; hex_val = data_in[27:24]; end
+            3'b111: begin dig_en_o = 8'h80; hex_val = data_in[31:28]; end
+            default: begin dig_en_o = 8'h00; hex_val = 4'h0;          end
+        endcase
+    end
 
-    // 16 进制到 7 段码 (高电平点亮)
+    // 5. 段选译码 (组合逻辑)
     always @(*) begin
         case(hex_val)
             4'h0: seg_o = 8'h3f; 4'h1: seg_o = 8'h06; 4'h2: seg_o = 8'h5b; 4'h3: seg_o = 8'h4f;

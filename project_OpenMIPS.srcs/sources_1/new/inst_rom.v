@@ -19,7 +19,7 @@ module inst_rom(
     initial begin
         // 1. 首先尝试使用工程相对路径（推荐，需将 data 文件加入 Vivado Sources）
         // 2. 如果相对路径失败，再使用修正后的正斜杠绝对路径
-        $readmemh("inst_rom.data", inst_mem);
+        $readmemh("E:\\Vivado_test\\project_OpenMIPS\\project_OpenMIPS.srcs\\sources_1\\new\\inst_rom.data", inst_mem);
         
         // 如果您坚持使用绝对路径，请务必使用正斜杠 / 如下：
         // $readmemh("E:/Vivado_test/project_OpenMIPS/project_OpenMIPS.srcs/sources_1/new/inst_rom.data", inst_mem);
@@ -32,7 +32,7 @@ module inst_rom(
         end else begin
             // 关键点：MIPS 地址是按字节计数的，但数组索引是按字计数的
             // addr[13:2] 相当于 addr / 4，去掉了低两位的字节偏移
-            inst <= inst_mem[addr[`InstMemNumLog2+1:2]];
+            inst <= inst_mem[addr[12:2]];
         end
     end
 
