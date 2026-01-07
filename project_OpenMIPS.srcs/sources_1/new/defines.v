@@ -243,13 +243,13 @@
 //Ö¸Áî´æ´¢Æ÷inst_rom
 `define InstAddrBus 31:0
 `define InstBus 31:0
-`define InstMemNum 131071
+`define InstMemNum 2048
 `define InstMemNumLog2 17
 
 //Êý¾Ý´æ´¢Æ÷data_ram
 `define DataAddrBus 31:0
 `define DataBus 31:0
-`define DataMemNum 131071
+`define DataMemNum 2048
 `define DataMemNumLog2 17
 `define ByteWidth 7:0
 

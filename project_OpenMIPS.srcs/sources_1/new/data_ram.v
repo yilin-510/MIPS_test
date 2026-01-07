@@ -17,11 +17,10 @@ module data_ram(
 	output reg[`DataBus]					data_o
 	
 );
-
-	reg[`ByteWidth]  data_mem0[0:`DataMemNum-1];
-	reg[`ByteWidth]  data_mem1[0:`DataMemNum-1];
-	reg[`ByteWidth]  data_mem2[0:`DataMemNum-1];
-	reg[`ByteWidth]  data_mem3[0:`DataMemNum-1];
+(* ram_style = "block" *) reg[`ByteWidth]  data_mem0[0:`DataMemNum-1];
+(* ram_style = "block" *) reg[`ByteWidth]  data_mem1[0:`DataMemNum-1];
+(* ram_style = "block" *) reg[`ByteWidth]  data_mem2[0:`DataMemNum-1];
+(* ram_style = "block" *) reg[`ByteWidth]  data_mem3[0:`DataMemNum-1];
 
 	always @ (posedge clk) begin
 		if (ce == `ChipDisable) begin
