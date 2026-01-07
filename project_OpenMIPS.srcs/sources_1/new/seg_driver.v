@@ -27,18 +27,18 @@ module seg_driver(
 
     // 获取当前位要显示的 4 位 16 进制数
     reg [3:0] hex_val;
-    always @(*) begin
-        case(scan_cnt)
-            3'b000: begin dig_en_o = 8'h01; hex_val = data_in[3:0];   end
-            3'b001: begin dig_en_o = 8'h02; hex_val = data_in[7:4];   end
-            3'b010: begin dig_en_o = 8'h04; hex_val = data_in[11:8];  end
-            3'b011: begin dig_en_o = 8'h08; hex_val = data_in[15:12]; end
-            3'b100: begin dig_en_o = 8'h10; hex_val = data_in[19:16]; end
-            3'b101: begin dig_en_o = 8'h20; hex_val = data_in[23:20]; end
-            3'b110: begin dig_en_o = 8'h40; hex_val = data_in[27:24]; end
-            3'b111: begin dig_en_o = 8'h80; hex_val = data_in[31:28]; end
-        endcase
-    end
+always @(*) begin
+    case(scan_cnt)
+        3'b000: begin dig_en_o = ~8'h01; hex_val = data_in[3:0];   end // 最右位
+        3'b001: begin dig_en_o = ~8'h02; hex_val = data_in[7:4];   end
+        3'b010: begin dig_en_o = ~8'h04; hex_val = data_in[11:8];  end
+        3'b011: begin dig_en_o = ~8'h08; hex_val = data_in[15:12]; end
+        3'b100: begin dig_en_o = ~8'h10; hex_val = data_in[19:16]; end
+        3'b101: begin dig_en_o = ~8'h20; hex_val = data_in[23:20]; end
+        3'b110: begin dig_en_o = ~8'h40; hex_val = data_in[27:24]; end
+        3'b111: begin dig_en_o = ~8'h80; hex_val = data_in[31:28]; end // 最左位
+    endcase
+end
 
     // 16 进制到 7 段码 (高电平点亮)
     always @(*) begin

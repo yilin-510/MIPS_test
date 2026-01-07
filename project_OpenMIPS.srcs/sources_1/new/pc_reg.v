@@ -55,10 +55,12 @@ end
 always @ (posedge clk) begin
     if (rst == `RstEnable) begin
         // 复位有效时，禁用芯片（ce = `ChipDisable）
+        pc <= 32'h00000000; // 复位时必须强制清零
         ce <= `ChipDisable;
     end else begin
         // 复位释放后，使能芯片（ce = `ChipEnable），允许 PC 正常工作
         ce <= `ChipEnable;
+        pc <= pc + 4; 
     end
 end
 
