@@ -1,58 +1,36 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2014 leishangwen@163.com                       ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Module:  openmips_min_sopc_tb
-// File:    openmips_min_sopc_tb.v
-// Author:  Lei Silei
-// E-mail:  leishangwen@163.com
-// Description: openmips_min_sopc的testbench
-// Revision: 1.0
-//////////////////////////////////////////////////////////////////////
-
-`include "defines.v"
 `timescale 1ns/1ps
+`include "defines.v"
 
-module openmips_min_sopc_tb();
+module openmips_min_sopc_tb_new();
+    reg clk;
+    reg rst;
+    wire [7:0] seg;
+    wire [7:0] dig;
 
-  reg     CLOCK_50;
-  reg     rst;
-  
-       
-  initial begin
-    CLOCK_50 = 1'b0;
-    forever #10 CLOCK_50 = ~CLOCK_50;
-  end
-      
-  initial begin
-    rst = `RstEnable;
-    #195 rst= `RstDisable;
-    #10000 $stop;
-  end
-       
-  openmips_min_sopc openmips_min_sopc0(
-		.clk(CLOCK_50),
-		.rst(rst)	
-	);
+    // 1. 实例化您修改后的顶层模块
+    openmips_min_sopc dut (
+        .clk(clk),
+        .rst(rst),
+        .seg_data_0_pin(seg),
+        .seg_data_1_pin(dig)
+    );
 
+    // 2. 产生 100MHz 时钟
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk; 
+    end
+
+    // 3. 产生复位信号
+    initial begin
+        rst = `RstEnable;   // 开始复位
+        #200 rst = `RstDisable; // 200ns 后释放复位
+        #2000000;           // 运行足够长的时间
+        $stop;
+    end
+
+    // 4. 监控输出：当数码管信号变化时打印出来
+    initial begin
+        $monitor("Time: %t | Dig_En: %b | Seg_Out: %h", $time, dig, seg);
+    end
 endmodule
