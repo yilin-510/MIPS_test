@@ -1,5 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 // Module:  pc_reg
+// File:    pc_reg.v
 // Description: 指令指针寄存器PC（Program Counter Register）
 //              用于在五级流水线CPU中管理程序计数器（PC）的更新逻辑，
 //              支持复位、暂停（stall）、冲刷（flush）和跳转（branch）。

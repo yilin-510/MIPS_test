@@ -1,7 +1,13 @@
-// Optimized regfile.v: Added port to export register 16 ($s0) for display
+//////////////////////////////////////////////////////////////////////
+// Module:  regfile
+// File:    regfile.v
+// Description: 通用寄存器，共32个
+//////////////////////////////////////////////////////////////////////
+
 `include "defines.v"
 
 module regfile(
+
 	input	wire										clk,
 	input wire										rst,
 	
@@ -18,16 +24,11 @@ module regfile(
 	//读端口2
 	input wire										re2,
 	input wire[`RegAddrBus]			  raddr2,
-	output reg[`RegBus]           rdata2,
-
-    // 新增：引出 $s0 (寄存器 16) 的值用于数码管显示
-    output wire[`RegBus]          s0_data_o
+	output reg[`RegBus]           rdata2
 	
 );
-	reg[`RegBus]  regs[0:`RegNum-1];
 
-    // 将寄存器 16 的值直接赋给输出端口
-    assign s0_data_o = regs[16];
+	reg[`RegBus]  regs[0:`RegNum-1];
 
 	always @ (posedge clk) begin
 		if (rst == `RstDisable) begin
@@ -66,4 +67,5 @@ module regfile(
 	      rdata2 <= `ZeroWord;
 	  end
 	end
+
 endmodule

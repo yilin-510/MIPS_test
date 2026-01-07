@@ -1,11 +1,8 @@
 //////////////////////////////////////////////////////////////////////
 // Module:  cp0_reg
 // File:    cp0_reg.v
-// Author:  Lei Silei
-// E-mail:  leishangwen@163.com
 // Description:实现了CP0中的一些寄存器，具体有：count、compare、status、
 //             cause、EPC、config、PrId
-// Revision: 1.0
 //////////////////////////////////////////////////////////////////////
 
 `include "defines.v"
@@ -49,7 +46,7 @@ module cp0_reg(
 			epc_o <= `ZeroWord;
 			//config寄存器的BE为1，表示Big-Endian；MT为00，表示没有MMU
 			config_o <= 32'b00000000000000001000000000000000;
-			//制作者是L，对应的是0x48，类型是0x1，基本类型，版本号是1.0
+			//对应的是0x48，类型是0x1，
 			prid_o <= 32'b00000000010011000000000100000010;
       timer_int_o <= `InterruptNotAssert;
 		end else begin
