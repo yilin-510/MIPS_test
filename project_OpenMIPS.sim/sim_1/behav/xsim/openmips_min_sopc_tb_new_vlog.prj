@@ -1,5 +1,5 @@
 # compile verilog/system verilog design source files
-verilog xil_defaultlib  \
+verilog xil_defaultlib "E:/Vivado_test/project_OpenMIPS/project_OpenMIPS.srcs/sources_1/new/defines.v" --include "../../../../project_OpenMIPS.srcs/sources_1/new" \
 "../../../../project_OpenMIPS.srcs/sources_1/new/LLbit_reg.v" \
 "../../../../project_OpenMIPS.srcs/sources_1/new/cp0_reg.v" \
 "../../../../project_OpenMIPS.srcs/sources_1/new/ctrl.v" \

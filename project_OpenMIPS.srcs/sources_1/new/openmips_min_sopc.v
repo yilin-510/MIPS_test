@@ -3,7 +3,7 @@ module openmips_min_sopc(
     input   wire            clk,
     input   wire            rst,
     output  wire [7:0]      seg_data_0_pin, // 段选
-    output  wire [7:0]      seg_data_1_pin  // 位选 (对应约束中的 1_pin)
+    output  wire [7:0]      seg_cs_pin  // 位选 (对应约束中的 1_pin)
 );
 
     // 内部信号
@@ -26,7 +26,7 @@ module openmips_min_sopc(
     reg [31:0] display_reg;
     always @(posedge clk) begin
         if (rst == `RstEnable) begin
-            display_reg <= 32'h0;
+            display_reg <= 32'h12345678;
         end else if (mem_ce_i && mem_we_i) begin
             display_reg <= mem_data_i; // 捕获 CPU 写入的数据
         end
@@ -56,10 +56,10 @@ module openmips_min_sopc(
     // 实例化数码管驱动
     // 注意：将 seg_data_0_pin 作为段选，seg_data_1_pin 作为位选
     seg_driver seg_driver0(
-        .clk(clk), .rst(rst),
-        .data_in(display_reg),
+        .clk(clk), .rst(~rst),
+        .data_in(32'h12345678),
         .seg_o(seg_data_0_pin),
-        .dig_en_o(seg_data_1_pin)
+        .dig_en_o(seg_cs_pin)
     );
 
 endmodule

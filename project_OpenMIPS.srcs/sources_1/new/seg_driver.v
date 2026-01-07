@@ -11,12 +11,12 @@ module seg_driver(
 );
 
     // 分频产生扫描时钟 (约 1kHz)
-    reg [16:0] cnt;
+    reg [17:0] cnt;
     always @(posedge clk or posedge rst) begin
         if (rst) cnt <= 0;
         else cnt <= cnt + 1;
     end
-    wire scan_clk = cnt[16];
+    wire scan_clk = cnt[17];
 
     // 扫描计数器 (0-7)
     reg [2:0] scan_cnt;

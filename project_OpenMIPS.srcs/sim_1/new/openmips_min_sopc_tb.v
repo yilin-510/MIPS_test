@@ -12,7 +12,7 @@ module openmips_min_sopc_tb_new();
         .clk(clk),
         .rst(rst),
         .seg_data_0_pin(seg),
-        .seg_data_1_pin(dig)
+        .seg_cs_pin(dig)
     );
 
     // 2. ²úÉú 100MHz Ê±ÖÓ
