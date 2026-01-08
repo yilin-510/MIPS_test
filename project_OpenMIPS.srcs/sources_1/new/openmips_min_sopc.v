@@ -48,7 +48,7 @@ module openmips_min_sopc(
     always @(posedge clk) begin
         if (rst == `RstEnable) begin
             display_reg <= 32'h88888888;
-        end else if (mem_ce_i && mem_we_i) begin
+        end else if (mem_ce_i && mem_we_i && (mem_addr_i == 32'h00003000)) begin
             display_reg <= mem_data_i; // 捕获 CPU 写入的数据
         end
     end

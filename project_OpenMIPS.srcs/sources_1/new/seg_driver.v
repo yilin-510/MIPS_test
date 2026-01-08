@@ -7,10 +7,10 @@ module seg_driver(
 );
 
     // 1. 分频计数器
-    reg [20:0] cnt;
+    reg [18:0] cnt;
     always @(posedge clk or negedge rst) begin // 改为下降沿异步复位
         if (!rst) begin                       // 低电平复位
-            cnt <= 21'd0;
+            cnt <= 19'd0;
         end else begin
             cnt <= cnt + 1'b1;
         end
@@ -22,12 +22,12 @@ module seg_driver(
         if (!rst) begin
             cnt_v_r <= 1'b0;
         end else begin
-            cnt_v_r <= cnt[20];
+            cnt_v_r <= cnt[18];
         end
     end
     
     // 只有在 cnt[20] 上升沿时产生一个周期的脉冲
-    wire scan_en = (cnt[20] == 1'b1 && cnt_v_r == 1'b0);
+    wire scan_en = (cnt[18] == 1'b1 && cnt_v_r == 1'b0);
 
     // 3. 扫描计数器 (0-7)
     reg [2:0] scan_cnt;
